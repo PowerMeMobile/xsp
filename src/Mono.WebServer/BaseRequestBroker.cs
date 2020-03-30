@@ -87,15 +87,12 @@ namespace Mono.WebServer
 			var new_buffers = new byte [newsize][];
 
 			request_ids.CopyTo (new_request_ids, 0);
-			Array.Clear (request_ids, 0, request_ids.Length);
 			request_ids = new_request_ids;
 			
 			requests.CopyTo (new_requests, 0);
-			Array.Clear (requests, 0, requests.Length);
 			requests = new_requests;
 			
 			buffers.CopyTo (new_buffers, 0);
-			Array.Clear (buffers, 0, buffers.Length);
 			buffers = new_buffers;
 
 			return curlen;
