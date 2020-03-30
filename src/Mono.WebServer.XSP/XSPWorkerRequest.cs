@@ -424,6 +424,10 @@ namespace Mono.WebServer
 
 		public override int GetLocalPort ()
 		{
+			var x_proxy_port = (string)headers["X-Forwarded-Port"];
+			if (!String.IsNullOrEmpty(x_proxy_port))
+				return int.Parse(x_proxy_port);
+			else
 			return localPort;
 		}
 
@@ -689,6 +693,10 @@ namespace Mono.WebServer
 
  		public override bool IsSecure ()
  		{
+			var x_proxy_proto = (string)headers["X-Forwarded-Proto"];
+			if (String.Equals("https", x_proxy_proto))
+				return true;
+			else
  			return secure;
  		}
 
