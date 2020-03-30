@@ -76,7 +76,8 @@ namespace Mono.WebServer
 		int GrowRequests()
 		{
 			var curlen = request_ids.Length;
-			int newsize = Math.Min(curlen + curlen / 3, MAX_REQUESTS);
+			int newsize = curlen + curlen / 3;
+			if (newsize > MAX_REQUESTS) newsize = MAX_REQUESTS;
 			if (newsize == curlen)
 			{
 				throw new InvalidOperationException("The max requests count " + MAX_REQUESTS + " has been reached.");
