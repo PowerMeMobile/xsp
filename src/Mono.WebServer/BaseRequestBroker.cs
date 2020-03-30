@@ -36,6 +36,8 @@ namespace Mono.WebServer
 	{
 		public event UnregisterRequestEventHandler UnregisterRequestEvent;
 		
+		const int MAX_REQUESTS = 65536;
+
 		//  Contains the initial request capacity of a BaseRequestBroker
 		const int INITIAL_REQUESTS = 200;
 
@@ -75,7 +77,11 @@ namespace Mono.WebServer
 		int GrowRequests ()
 		{
 			var curlen = request_ids.Length;
-			int newsize = curlen + curlen/3;
+			int newsize = Math.Min(curlen + curlen / 3, MAX_REQUESTS);
+			if (newsize == curlen)
+			{
+				throw new InvalidOperationException("The max requests count " + MAX_REQUESTS + " has been reached.");
+			}
 			var new_request_ids = new int [newsize];
 			var new_requests = new Worker [newsize];
 			var new_buffers = new byte [newsize][];
