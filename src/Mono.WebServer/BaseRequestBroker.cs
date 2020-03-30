@@ -72,9 +72,8 @@ namespace Mono.WebServer
 		///
 		/// This *MUST* be called with the reqlock held!
 		/// </summary>
-		/// <returns>ID to use for a new request.</returns>
-		/// <param name="curlen">Current length of the allocation tables.</param>
-		int GrowRequests ()
+		/// <returns>Index to use for a new request.</returns>
+		int GrowRequests()
 		{
 			var curlen = request_ids.Length;
 			int newsize = Math.Min(curlen + curlen / 3, MAX_REQUESTS);
@@ -116,40 +115,41 @@ namespace Mono.WebServer
 
 			requests_count++;
 
-			int newid;
-			if (requests_count >= reqlen)
-				newid = GrowRequests ();
+			int emptyCellIndex;
+			if (requests_count > reqlen)
+				emptyCellIndex = GrowRequests();
 			else
-				newid = Array.IndexOf (request_ids, 0);
+				emptyCellIndex = Array.IndexOf(request_ids, 0);
 
-			if (newid == -1) {
+			if (emptyCellIndex == -1)
+			{
 				// Should never happen...
-				throw new ApplicationException ("could not allocate new request id");
+				throw new ApplicationException("could not allocate new request id");
 			}
 
 			// TODO: newid had better not exceed 0xFFFF.
-			newid = ((ushort)newid & 0xFFFF) | (((ushort)requests_served & 0x7FFF) << 16);
-			request_ids [IdToIndex(newid)] = newid;
+			var newid = ((ushort)emptyCellIndex & 0xFFFF) | (((ushort)requests_served & 0x7FFF) << 16);
+			var index = IdToIndex(newid);
+			if (request_ids[index] != 0)
+				throw new InvalidOperationException("The cell " + index + " is not empty for request id " + newid);
+			request_ids[index] = newid;
 			return newid;
 		}		
 
-		public int RegisterRequest (Worker worker)
+		public int RegisterRequest(Worker worker)
 		{
 			lock (reqlock) {
-
-				int result;
-
-				result = IdToIndex (GetNextRequestId ());
-				requests [result] = worker;
+				var newid = GetNextRequestId();
+				var index = IdToIndex(newid);
+				requests[index] = worker;
 				
 				// Don't create a new array if one already exists.
-				byte[] a = buffers [result];
+				byte[] a = buffers[index];
 				if (a == null)
-					buffers [result] = new byte [BUFFER_SIZE];
+					buffers[index] = new byte[BUFFER_SIZE];
 
-				return request_ids[result];
+				return newid;
 			}
-
 		}
 
 		int IdToIndex(int requestId) {
