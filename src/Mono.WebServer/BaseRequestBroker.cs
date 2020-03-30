@@ -132,9 +132,10 @@ namespace Mono.WebServer
 
 		public int RegisterRequest (Worker worker)
 		{
-			int result;
-			
 			lock (reqlock) {
+
+				int result;
+
 				result = IdToIndex (GetNextRequestId ());
 				requests [result] = worker;
 				
@@ -142,9 +143,10 @@ namespace Mono.WebServer
 				byte[] a = buffers [result];
 				if (a == null)
 					buffers [result] = new byte [BUFFER_SIZE];
+
+				return request_ids[result];
 			}
 
-			return request_ids [result];
 		}
 
 		int IdToIndex(int requestId) {
